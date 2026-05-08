@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
 from typing import List
-from auth import create_access_token, get_current_user, User, fake_users_db
+from backend.auth import create_access_token, get_current_user, User, fake_users_db
 
 app = FastAPI()
 
