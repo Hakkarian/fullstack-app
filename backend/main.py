@@ -21,7 +21,7 @@ class CreateTaskRequest(BaseModel):
     title: str
 
 
-@app.get("/health")
+@app.get("/api/health")
 def health_check():
     """
     Health check endpoint to verify the API is running.
