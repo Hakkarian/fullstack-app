@@ -1,5 +1,6 @@
 import React from 'react';
-import { shallow, mount } from 'enzyme';
+import { render, screen, waitFor, act } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import TaskForm from '../TaskForm';
 
 // Mock fetch API
@@ -11,21 +12,18 @@ describe('TaskForm', () => {
   });
 
   it('renders form with input and button', () => {
-    const wrapper = shallow(<TaskForm />);
-    expect(wrapper.find('input')).toHaveLength(1);
-    expect(wrapper.find('button')).toHaveLength(1);
-    expect(wrapper.find('button').text()).toBe('Add Task');
+    render(<TaskForm />);
+    expect(screen.getByPlaceholderText('Enter task title')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Add Task' })).toBeInTheDocument();
   });
 
-  it('updates input value on change', () => {
-    const wrapper = mount(<TaskForm />);
-    const input = wrapper.find('input');
+  it('updates input value on change', async () => {
+    render(<TaskForm />);
+    const input = screen.getByPlaceholderText('Enter task title');
 
-    input.instance().value = 'New Task';
-    input.simulate('change');
-    wrapper.update();
+    await userEvent.type(input, 'New Task');
 
-    expect(wrapper.find('input').instance().value).toBe('New Task');
+    expect(input).toHaveValue('New Task');
   });
 
   it('calls fetch on form submission', async () => {
@@ -37,22 +35,22 @@ describe('TaskForm', () => {
     );
 
     const onTaskCreated = jest.fn();
-    const wrapper = mount(<TaskForm onTaskCreated={onTaskCreated} />);
+    render(<TaskForm onTaskCreated={onTaskCreated} />);
 
-    const input = wrapper.find('input');
-    const form = wrapper.find('form');
+    const input = screen.getByPlaceholderText('Enter task title');
+    const button = screen.getByRole('button', { name: 'Add Task' });
 
-    input.instance().value = 'New Task';
-    input.simulate('change');
+    await userEvent.type(input, 'New Task');
+    await act(async () => {
+      await userEvent.click(button);
+    });
 
-    form.simulate('submit', { preventDefault: () => {} });
-
-    await new Promise(resolve => setTimeout(resolve, 0));
-
-    expect(fetch).toHaveBeenCalledWith('/api/tasks', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: 'New Task', completed: false })
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledWith('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: 'New Task', completed: false })
+      });
     });
   });
 
@@ -65,19 +63,19 @@ describe('TaskForm', () => {
     );
 
     const onTaskCreated = jest.fn();
-    const wrapper = mount(<TaskForm onTaskCreated={onTaskCreated} />);
+    render(<TaskForm onTaskCreated={onTaskCreated} />);
 
-    const input = wrapper.find('input');
-    const form = wrapper.find('form');
+    const input = screen.getByPlaceholderText('Enter task title');
+    const button = screen.getByRole('button', { name: 'Add Task' });
 
-    input.instance().value = 'New Task';
-    input.simulate('change');
+    await userEvent.type(input, 'New Task');
+    await act(async () => {
+      await userEvent.click(button);
+    });
 
-    form.simulate('submit', { preventDefault: () => {} });
-
-    await new Promise(resolve => setTimeout(resolve, 0));
-
-    expect(onTaskCreated).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(onTaskCreated).toHaveBeenCalled();
+    });
   });
 
   it('displays error message on fetch failure', async () => {
@@ -85,26 +83,25 @@ describe('TaskForm', () => {
       Promise.reject(new Error('Failed to create task'))
     );
 
-    const wrapper = mount(<TaskForm />);
-    const input = wrapper.find('input');
-    const form = wrapper.find('form');
+    render(<TaskForm />);
+    const input = screen.getByPlaceholderText('Enter task title');
+    const button = screen.getByRole('button', { name: 'Add Task' });
 
-    input.instance().value = 'New Task';
-    input.simulate('change');
+    await userEvent.type(input, 'New Task');
+    await act(async () => {
+      await userEvent.click(button);
+    });
 
-    form.simulate('submit', { preventDefault: () => {} });
-
-    await new Promise(resolve => setTimeout(resolve, 0));
-    wrapper.update();
-
-    expect(wrapper.find('.error').text()).toContain('Error:');
+    await waitFor(() => {
+      expect(screen.getByText(/Error:/)).toBeInTheDocument();
+    });
   });
 
-  it('does not submit when title is empty', () => {
-    const wrapper = mount(<TaskForm />);
-    const form = wrapper.find('form');
+  it('does not submit when title is empty', async () => {
+    render(<TaskForm />);
+    const button = screen.getByRole('button', { name: 'Add Task' });
 
-    form.simulate('submit', { preventDefault: () => {} });
+    await userEvent.click(button);
 
     expect(fetch).not.toHaveBeenCalled();
   });

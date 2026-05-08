@@ -1,5 +1,5 @@
 import React from 'react';
-import { shallow, mount } from 'enzyme';
+import { render, screen, waitFor } from '@testing-library/react';
 import TaskList from '../TaskList';
 
 // Mock fetch API
@@ -12,8 +12,8 @@ describe('TaskList', () => {
 
   it('renders loading state initially', () => {
     fetch.mockImplementationOnce(() => new Promise(() => {}));
-    const wrapper = shallow(<TaskList />);
-    expect(wrapper.find('div').first().text()).toBe('Loading tasks...');
+    render(<TaskList />);
+    expect(screen.getByText('Loading tasks...')).toBeInTheDocument();
   });
 
   it('renders error state on fetch failure', async () => {
@@ -21,11 +21,11 @@ describe('TaskList', () => {
       Promise.reject(new Error('Failed to fetch tasks'))
     );
 
-    const wrapper = mount(<TaskList />);
-    await new Promise(resolve => setTimeout(resolve, 0));
+    render(<TaskList />);
 
-    wrapper.update();
-    expect(wrapper.find('div').first().text()).toContain('Error:');
+    await waitFor(() => {
+      expect(screen.getByText(/Error:/)).toBeInTheDocument();
+    });
   });
 
   it('renders tasks when fetch succeeds', async () => {
@@ -41,12 +41,15 @@ describe('TaskList', () => {
       })
     );
 
-    const wrapper = mount(<TaskList />);
-    await new Promise(resolve => setTimeout(resolve, 0));
+    render(<TaskList />);
 
-    wrapper.update();
-    expect(wrapper.find('li')).toHaveLength(2);
-    expect(wrapper.find('li').first().find('span').first().text()).toBe('Task 1');
+    await waitFor(() => {
+      expect(screen.getByText('Task 1')).toBeInTheDocument();
+      expect(screen.getByText('Task 2')).toBeInTheDocument();
+    });
+
+    const items = screen.getAllByRole('listitem');
+    expect(items).toHaveLength(2);
   });
 
   it('renders "No tasks yet" when tasks array is empty', async () => {
@@ -57,11 +60,11 @@ describe('TaskList', () => {
       })
     );
 
-    const wrapper = mount(<TaskList />);
-    await new Promise(resolve => setTimeout(resolve, 0));
+    render(<TaskList />);
 
-    wrapper.update();
-    expect(wrapper.find('p').text()).toBe('No tasks yet.');
+    await waitFor(() => {
+      expect(screen.getByText('No tasks yet.')).toBeInTheDocument();
+    });
   });
 
   it('displays task status correctly', async () => {
@@ -77,11 +80,11 @@ describe('TaskList', () => {
       })
     );
 
-    const wrapper = mount(<TaskList />);
-    await new Promise(resolve => setTimeout(resolve, 0));
+    render(<TaskList />);
 
-    wrapper.update();
-    const statusSpans = wrapper.find('.task-item span').at(1);
-    expect(statusSpans.text()).toContain('Pending');
+    await waitFor(() => {
+      expect(screen.getByText(/Status: Pending/)).toBeInTheDocument();
+      expect(screen.getByText(/Status: Done/)).toBeInTheDocument();
+    });
   });
 });

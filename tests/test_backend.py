@@ -1,5 +1,10 @@
+import sys
+import os
 import pytest
 import json
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
 from backend.app import app
 
 
