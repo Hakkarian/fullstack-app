@@ -40,10 +40,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "devDependencies": {
-    "@types/enzyme": "^3.10.19",
-    "enzyme": "^3.11.0",
-    "@wojtekmaj/enzyme-adapter-react-17": "^17.0.0"
   }
 }
