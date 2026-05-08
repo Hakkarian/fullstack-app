@@ -4,5 +4,7 @@ sqlalchemy
 pydantic
 python-multipart
 python-jose[cryptography]
+httpx
+starlette
 pytest
 pytest-cov

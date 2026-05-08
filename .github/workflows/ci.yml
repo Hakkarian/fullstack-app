@@ -40,7 +40,12 @@ jobs:
           cache: "npm"
           cache-dependency-path: frontend/package-lock.json
       - name: Install dependencies
-        run: npm ci
+        run: |
+          if [ -f "package-lock.json" ]; then
+            npm install --legacy-peer-deps
+          else
+            npm install --legacy-peer-deps
+          fi
       - name: Run Jest
         run: npm test -- --watchAll=false
 
@@ -54,4 +59,4 @@ jobs:
           cd backend && pip install -r requirements.txt && python -m build || true
       - name: Build frontend
         run: |
-          cd frontend && npm ci && npm run build
+          cd frontend && if [ -f "package-lock.json" ]; then npm ci --legacy-peer-deps; else npm install --legacy-peer-deps; fi && npm run build
